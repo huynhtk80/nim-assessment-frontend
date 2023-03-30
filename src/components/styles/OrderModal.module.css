@@ -46,6 +46,11 @@
   justify-content: center;
 }
 
+.errorMsg {
+  color: red;
+  font-size: small;
+}
+
 .deliveryChoice {
   width: 100%;
   display: flex;

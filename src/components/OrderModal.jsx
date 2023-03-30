@@ -6,26 +6,101 @@ function OrderModal({ order, setOrderModal }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [errorState, setErrorState] = useState({
+    name: false,
+    phone: false,
+    address: false
+  });
+  const [errorMsg, setErrorMsg] = useState({
+    name: "",
+    phone: "",
+    address: ""
+  });
   const navigate = useNavigate();
 
+  const validPhone = () => {
+    const cleaned = phone.replace(/\D/g, "");
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      setPhone(`(${match[1]})${match[2]}-${match[3]}`);
+      return true;
+    }
+    return false;
+  };
+
+  function formatPhoneNumber() {
+    const cleaned = phone.replace(/\D/g, "");
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      return `(${match[1]})${match[2]}-${match[3]}`;
+    }
+    return phone;
+  }
+
+  const validate = () => {
+    let valid = true;
+    let errors = {
+      name: false,
+      phone: false,
+      address: false
+    };
+    let eMessage = {
+      name: "",
+      phone: "",
+      address: ""
+    };
+
+    if (!name) {
+      valid = false;
+      errors = { ...errors, name: true };
+      eMessage = { ...eMessage, name: "Name is required" };
+    }
+
+    if (!phone) {
+      valid = false;
+      errors = { ...errors, phone: true };
+      eMessage = { ...eMessage, phone: "Phone Number is required" };
+    }
+
+    if (phone && !validPhone()) {
+      valid = false;
+      errors = { ...errors, phone: true };
+      eMessage = { ...eMessage, phone: "Phone Number requires 10 digits" };
+    }
+
+    if (!address) {
+      valid = false;
+      errors = { ...errors, address: true };
+      eMessage = { ...eMessage, address: "Address is required" };
+    }
+
+    setErrorState(errors);
+    setErrorMsg(eMessage);
+
+    return valid;
+  };
+
   const placeOrder = async () => {
-    const response = await fetch("/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name,
-        phone,
-        address,
-        items: order
-      })
-    });
-    if (response.status === 200) {
-      const data = await response.json();
-      navigate(`/order-confirmation/${data.id}`);
+    if (validate()) {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name,
+          phone: formatPhoneNumber(phone),
+          address,
+          items: order
+        })
+      });
+      if (response.status === 200) {
+        const data = await response.json();
+        navigate(`/order-confirmation/${data.id}`);
+      }
     }
   };
+
   return (
     <>
       <div
@@ -45,7 +120,10 @@ function OrderModal({ order, setOrderModal }) {
         <form className={styles.form}>
           <div className={styles.formGroup}>
             <label htmlFor="name">
-              Name
+              Name{" "}
+              <span className={styles.errorMsg}>
+                {errorState.name && errorMsg.name}
+              </span>
               <input
                 onChange={(e) => {
                   e.preventDefault();
@@ -58,12 +136,16 @@ function OrderModal({ order, setOrderModal }) {
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="phone">
-              Phone
+              Phone{" "}
+              <span className={styles.errorMsg}>
+                {errorState.phone && errorMsg.phone}
+              </span>
               <input
                 onChange={(e) => {
                   e.preventDefault();
                   setPhone(e.target.value);
                 }}
+                value={phone}
                 type="phone"
                 id="phone"
               />
@@ -71,7 +153,10 @@ function OrderModal({ order, setOrderModal }) {
           </div>
           <div className={styles.formGroup}>
             <label htmlFor="address">
-              Address
+              Address{" "}
+              <span className={styles.errorMsg}>
+                {errorState.address && errorMsg.address}
+              </span>
               <input
                 onChange={(e) => {
                   e.preventDefault();
@@ -91,6 +176,7 @@ function OrderModal({ order, setOrderModal }) {
           >
             Close
           </button>
+
           <button
             onClick={() => {
               placeOrder();
