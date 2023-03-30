@@ -27,7 +27,7 @@ function ConfirmationPage() {
 
   return (
     <div className="page">
-      <OrderConfirmation orderInfo={orderInfo} />
+      <OrderConfirmation order={orderInfo} />
     </div>
   );
 }
