@@ -8,12 +8,9 @@ function ConfirmationPage() {
 
   const getData = async () => {
     const response = await fetch(`/api/orders/${id}`);
-    if (response.ok) {
-      const data = await response.json();
-      setOrderInfo(data);
-    } else {
-      setOrderInfo(undefined);
-    }
+
+    const data = await response.json();
+    setOrderInfo(data);
   };
 
   useEffect(() => {
